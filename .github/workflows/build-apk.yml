@@ -24,6 +24,21 @@ jobs:
           fi
           echo "PROJECT_DIR=$(dirname "$CFG")" >> "$GITHUB_ENV"
 
+      - name: Prepare project files
+        working-directory: ${{ env.PROJECT_DIR }}
+        shell: bash
+        run: |
+          mkdir -p www assets
+          if [ -f index.html ]; then mv index.html www/index.html; fi
+          for f in icon-only.png icon-foreground.png icon-background.png; do
+            if [ -f "$f" ]; then mv "$f" assets/; fi
+          done
+          if [ ! -f www/index.html ]; then
+            echo "::error::index.html não encontrado. Envie o arquivo index.html para o repositório."
+            exit 1
+          fi
+          ls -R www assets
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -54,3 +69,36 @@ jobs:
           if [ ! -d android ]; then
             npx cap add android
           fi
+          ls android
+
+      - name: Generate app icons
+        working-directory: ${{ env.PROJECT_DIR }}
+        continue-on-error: true
+        run: npx capacitor-assets generate --android
+
+      - name: Android permissions
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: |
+          M=android/app/src/main/AndroidManifest.xml
+          if ! grep -q RECORD_AUDIO "$M"; then
+            sed -i '/android.permission.INTERNET/a <uses-permission android:name="android.permission.RECORD_AUDIO"/><uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"/>' "$M"
+            sed -i 's#</manifest>#<queries><intent><action android:name="android.speech.RecognitionService"/></intent></queries></manifest>#' "$M"
+          fi
+
+      - name: Sync web files
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: npx cap sync android
+
+      - name: Build APK
+        working-directory: ${{ env.PROJECT_DIR }}/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
+        env:
+          GRADLE_OPTS: -Dorg.gradle.daemon=false
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: JAKO-apk
+          path: ${{ env.PROJECT_DIR }}/android/app/build/outputs/apk/debug/*.apk
