@@ -23,36 +23,45 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: '21'
 
       - name: Setup Android SDK
         shell: bash
         run: |
-          echo "Installing Android SDK packages..."
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null || true
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install \
             "platform-tools" \
-            "platforms;android-34" \
-            "build-tools;34.0.0"
-
-      - name: Install Cordova
-        run: npm install -g cordova
+            "platforms;android-35" \
+            "build-tools;35.0.0"
 
       - name: Install project dependencies
         run: npm install
 
       - name: Add Android platform
-        run: cordova platform add android --no-telemetry
-        env:
-          GRADLE_OPTS: -Dorg.gradle.daemon=false
+        run: npx cap add android
+
+      - name: Generate app icons
+        run: npx capacitor-assets generate --android
+
+      - name: Android permissions
+        run: |
+          M=android/app/src/main/AndroidManifest.xml
+          sed -i '/android.permission.INTERNET/a <uses-permission android:name="android.permission.RECORD_AUDIO"/><uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"/>' $M
+          sed -i 's#</manifest>#<queries><intent><action android:name="android.speech.RecognitionService"/></intent></queries></manifest>#' $M
+
+      - name: Sync web files
+        run: npx cap sync android
 
       - name: Build APK
-        run: cordova build android --release
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
         env:
           GRADLE_OPTS: -Dorg.gradle.daemon=false
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: html-to-apk-app
-          path: platforms/android/app/build/outputs/apk/release/*.apk
+          name: JAKO-apk
+          path: android/app/build/outputs/apk/debug/*.apk
