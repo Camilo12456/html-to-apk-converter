@@ -20,15 +20,9 @@ jobs:
         shell: bash
         run: |
           mkdir -p "$B/www" "$B/assets"
-          SRC=""
-          for c in jako.html index.html www/index.html; do
-            if [ -f "$c" ]; then SRC="$c"; break; fi
-          done
+          SRC=$(grep -rl --include='*.html' 'jako_cfg' . --exclude-dir=node_modules --exclude-dir=_jako_build --exclude-dir=.git | head -n 1 || true)
           if [ -z "$SRC" ]; then
-            SRC=$(find . -name index.html -not -path "*/node_modules/*" | head -n 1)
-          fi
-          if [ -z "$SRC" ]; then
-            echo "::error::Nenhum index.html (ou jako.html) encontrado no repositĆ³rio. Envie o arquivo do app."
+            echo "::error::O arquivo do Jako não foi encontrado no repositório (só existe o modelo HTML para APK). Envie o index.html do Jako."
             exit 1
           fi
           echo "Usando $SRC"
