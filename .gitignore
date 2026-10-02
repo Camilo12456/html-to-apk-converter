@@ -1,0 +1,7 @@
+# Ignore platform build output
+platforms/
+plugins/
+node_modules/
+
+# Android Studio / Cordova generated files
+.DS_Store

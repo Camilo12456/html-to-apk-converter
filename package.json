@@ -1,0 +1,19 @@
+{
+  "name": "html-to-apk-converter",
+  "displayName": "HTML to APK Converter",
+  "version": "1.0.0",
+  "description": "Starter project to pack HTML/CSS/JavaScript into an APK with Cordova",
+  "main": "index.js",
+  "scripts": {
+    "build": "cordova build android"
+  },
+  "keywords": [
+    "cordova",
+    "android",
+    "apk",
+    "html",
+    "webview"
+  ],
+  "author": "Camilo12456",
+  "license": "MIT"
+}

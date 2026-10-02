@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="com.exemplo.htmltoapk" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>HTML to APK</name>
+    <description>Aplicativo Android gerado a partir de HTML/CSS/JavaScript</description>
+    <author email="dev@exemplo.com" href="https://github.com/Camilo12456/html-to-apk-converter">
+        Camilo12456
+    </author>
+    <content src="index.html" />
+    <access origin="*" />
+    <allow-intent href="http://*/*" />
+    <allow-intent href="https://*/*" />
+    <platform name="android">
+        <allow-intent href="market:*" />
+    </platform>
+</widget>
