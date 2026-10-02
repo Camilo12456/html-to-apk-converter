@@ -25,35 +25,29 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Setup Android SDK
+      - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools,build-tools;34.0.0,platforms;android-34'
 
       - name: Install Cordova
         run: npm install -g cordova
 
-      - name: Accept Android SDK licenses
-        shell: bash
-        run: |
-          set -e
-          export ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-$HOME/Android/Sdk}"
-
-          for i in {1..5}; do
-            echo "Tentativa $i de aceitar licenças..."
-            yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null 2>&1 && break
-            sleep 10
-          done
-
-      - name: Install Android SDK packages
-        run: sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+      - name: Install project dependencies
+        run: npm install
 
       - name: Add Android platform
         run: cordova platform add android --no-telemetry
+        env:
+          GRADLE_OPTS: -Dorg.gradle.daemon=false
 
       - name: Build APK
-        run: cordova build android
+        run: cordova build android --release
+        env:
+          GRADLE_OPTS: -Dorg.gradle.daemon=false
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: html-to-apk-app
-          path: platforms/android/app/build/outputs/apk/debug/*.apk
+          path: platforms/android/app/build/outputs/apk/release/*.apk
